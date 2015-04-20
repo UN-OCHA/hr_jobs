@@ -1,11 +1,11 @@
 (function($) {
-Drupal.behaviors.hidProfilesContacts = {
+Drupal.behaviors.hrJobs = {
   attach: function (context, settings) {
 
   JobsList = Backbone.Collection.extend({
 
     url: function() {
-      return 'http://api.rwlabs.org/v1/jobs?query[fields][]=country&fields[include][]=url&query[value]=' .settings.hr_jobs.operation . + '&callback=?';
+      return 'http://api.rwlabs.org/v1/jobs?query[fields][]=country&fields[include][]=url&query[value]=' + settings.hr_jobs.operation  + '&callback=?';
     },
 
     parse: function(response) {
@@ -14,8 +14,7 @@ Drupal.behaviors.hidProfilesContacts = {
       return response.data.fields;
     },
 
-    return JobsList;
-    });
+  });
 
     JobView = Backbone.View.extend({
 
@@ -79,6 +78,7 @@ Drupal.behaviors.hidProfilesContacts = {
           $('#loading').hide();
           this.show();
         },
+    });
 
     Backbone.history.start();
 

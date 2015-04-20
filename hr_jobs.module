@@ -10,11 +10,12 @@
 
 function hr_jobs_menu(){
   $items = array();
-  $items['node/%title/jobs'] = array(
+  $items['node/%node/jobs'] = array(
     'title' => 'ReliefWeb Jobs',
     'page callback' => 'hr_jobs_reliefweb_jobs',
     'page arguments' => array(1),
-    //'access arguments' =>
+    'access arguments' => array('access content'),
     'file' => 'hr_jobs.pages.inc',
   );
+  return $items;
 }
