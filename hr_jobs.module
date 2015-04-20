@@ -1,0 +1,20 @@
+<?php
+
+/**
+*  Code for integrating ReliefWeb jobs in Humanitarianresponse.
+*/
+
+/**
+ * Implements hook_menu().
+ */
+
+function hr_jobs_menu(){
+  $items = array();
+  $items['node/%title/jobs'] = array(
+    'title' => 'ReliefWeb Jobs',
+    'page callback' => 'hr_jobs_reliefweb_jobs',
+    'page arguments' => array(1),
+    //'access arguments' =>
+    'file' => 'hr_jobs.pages.inc',
+  );
+}
