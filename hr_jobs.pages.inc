@@ -11,7 +11,7 @@ function hr_jobs_reliefweb_jobs($operation){
   }
 
   drupal_add_js(drupal_get_path('module', 'hr_jobs') . '/js/hr_jobs.js');
-  drupal_add_js(array('hr_jobs' => array('operation' => $operation)), 'setting');
+  drupal_add_js(array('hr_jobs' => array('operation' => $operation->title)), 'setting');
 
   $html = '<div id="jobs-view">
   </div>
