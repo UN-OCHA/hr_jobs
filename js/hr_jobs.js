@@ -12,9 +12,9 @@ Drupal.behaviors.hrJobs = {
   JobsList = Backbone.Collection.extend({
 
     model: Job,
-    //params: {},
+    params: {},
     url: function() {
-      return 'http://api.rwlabs.org/v1/jobs?query[fields][]=country&fields[include][]=url&query[value]=' + settings.hr_jobs.operation;
+      return 'http://api.rwlabs.org/v1/jobs?offset=' + this.skip + '&limit=' + this.limit + '&query[fields][]=country&fields[include][]=url&query[value]=' + settings.hr_jobs.operation;
     },
 
     parse: function(response) {
@@ -31,82 +31,105 @@ Drupal.behaviors.hrJobs = {
       }, this);
     },
 
-    limit: 5,
+    limit: 20,
     skip: 0,
     count: 0,
 
   });
 
-    JobView = Backbone.View.extend({
+  JobView = Backbone.View.extend({
 
-      router: null,
+    router: null,
 
-      clear: function() {
-        this.$el.empty();
+    clear: function() {
+      this.$el.empty();
+    },
+
+    loading: function() {
+      this.hide();
+      $('#loading').show();
+    },
+
+    finishedLoading: function() {
+      $('#loading').hide();
+      this.show();
+    },
+
+  });
+
+  JobTableView = JobView.extend({
+
+      numItems: 20,
+      currentPage: 1,
+
+      initialize: function() {
+          this.JobsList = new JobsList;
+          this.JobsList.limit = this.numItems;
       },
 
-      loading: function() {
-        this.hide();
-        $('#loading').show();
+      loadResults: function() {
+        var that = this;
+        this.JobsList.fetch({
+          success: function (fields) {
+            var template = _.template($('#jobs_list_view').html());
+            $('#jobs-list-table tbody').append(template({fields: fields.models}));
+            that.finishedLoading();
+          },
+        });
+      },
+
+      page: function(page) {
+        this.loading();
+        this.currentPage = page;
+        this.clear();
+        this.JobsList.skip = this.numItems * (page - 1);
+        this.loadResults();
+      },
+
+      render: function (model){
+        this.loadResults();
+      },
+
+      clear: function() {
+        $('#jobs-list-table tbody').empty();
+      },
+
+      show: function() {
+        $('#jobs-list').show();
+      },
+
+      hide: function() {
+        $('#jobs-list').hide();
       },
 
       finishedLoading: function() {
         $('#loading').hide();
         this.show();
+        this.pager();
       },
 
-    });
-
-    JobTableView = JobView.extend({
-
-        numItems: 10,
-        currentPage: 1,
-
-        initialize: function() {
-            this.JobsList = new JobsList;
-            this.JobsList.limit = this.numItems;
-            this.render();
-        },
-
-        loadResults: function() {
-          var that = this;
-          this.JobsList.fetch({
-            success: function (fields) {
-              var template = _.template($('#jobs_list_view').html());
-              $('#jobs-list-table tbody').append(template({fields: fields.models}));
-              that.finishedLoading();
-            },
-          });
-        },
-
-        page: function(page) {
-          this.loading();
-          this.currentPage = page;
-          this.clear();
-          this.JobsList.skip = this.numItems * (page - 1);
-          this.loadResults();
-        },
-
-        render: function (model){
-          this.loadResults();
-        },
-
-        clear: function() {
-          $('#jobs-list-table tbody').empty();
-        },
-
-        show: function() {
-          $('#jobs-list').show();
-        },
-
-        hide: function() {
-          $('#jobs-list').hide();
-        },
-
-        finishedLoading: function() {
-          $('#loading').hide();
-          this.show();
-        },
+      pager: function() {
+        var nextPage = parseInt(this.currentPage) + 1;
+        var previousPage = parseInt(this.currentPage) - 1;
+        var count = this.JobsList.count;
+        var itemsPerPage = this.numItems;
+        var paramsString = $.param(this.JobsList.params);
+        if (paramsString != '') {
+          paramsString = '?' + paramsString;
+        }
+        if (this.currentPage * itemsPerPage < count) {
+          $('#next').attr('href', '#table/' + nextPage + paramsString);
+        }
+        else {
+          $('#next').attr('href', '#table/' + this.currentPage + paramsString);
+        }
+        if (previousPage > 0) {
+          $('#previous').attr('href', '#table/' + previousPage + paramsString);
+        }
+        else {
+          $('#previous').attr('href', '#table/' + this.currentPage + paramsString);
+        }
+      },
     });
 
     JobsRouter = Backbone.Router.extend({
@@ -133,10 +156,9 @@ Drupal.behaviors.hrJobs = {
         this.navigate(url + '?' + $.param(params), {trigger: true});
       },
     });
-    Backbone.history.start();
-    var jobs_router = new JobsRouter;
 
-    //Backbone.history.start();
+    var jobs_router = new JobsRouter;
+    Backbone.history.start();
 
   }
 }
