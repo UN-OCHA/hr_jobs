@@ -14,7 +14,13 @@ Drupal.behaviors.hrJobs = {
     model: Job,
     params: {},
     url: function() {
-      return 'http://api.rwlabs.org/v1/jobs?offset=' + this.skip + '&limit=' + this.limit + '&query[fields][]=country&fields[include][]=url&query[value]=' + settings.hr_jobs.operation;
+      var url = 'http://api.rwlabs.org/v1/jobs?offset=' + this.skip + '&limit=' + this.limit + '&query[fields][]=country&fields[include][]=url&query[value]=' + settings.hr_jobs.operation;
+      var index = window.location.hash.indexOf('=');
+      if(index != -1) {
+        var params = window.location.hash.substr(index + 1);
+        url += '&filter[field]=title&filter[value]=' + params;
+      }
+      return url;
     },
 
     parse: function(response) {
@@ -78,6 +84,11 @@ Drupal.behaviors.hrJobs = {
         });
       },
 
+      events: {
+        'click #back': 'back',
+        'keyup #organizations.form-control': 'searchByTitle',
+      },
+
       page: function(page) {
         this.loading();
         this.currentPage = page;
@@ -130,6 +141,18 @@ Drupal.behaviors.hrJobs = {
           $('#previous').attr('href', '#table/' + this.currentPage + paramsString);
         }
       },
+
+      searchByTitle: function(event) {
+        var val = $('#organizations.form-control').val();
+          if (val != '' && event.which === 13) {
+            this.JobsList.params.title = val;
+          }
+          else {
+            delete this.JobsList.params.title;
+          }
+          this.router.navigateWithParams('table/1', this.JobsList.params);
+        },
+
     });
 
     JobsRouter = Backbone.Router.extend({
